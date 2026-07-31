@@ -1,14 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import prismadb from "@/libs/prismadb";
 import serverAuth from "@/libs/serverAuth";
-import { DeleteObjectCommand } from "@aws-sdk/client-s3";
-import { s3 } from "@/libs/s3";
-
-const getS3KeyFromUrl = (url: string) => {
-  const bucketUrl = `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/`;
-
-  return url.replace(bucketUrl, "");
-};
+import { deleteFileFromS3 } from "@/libs/s3";
 
 export default async function handler(
   req: NextApiRequest,
@@ -151,27 +144,13 @@ export default async function handler(
       // Delete Thumbnail from S3
       // -------------------------
 
-      const thumbnailKey = getS3KeyFromUrl(episode.thumbnailUrl);
-
-      await s3.send(
-        new DeleteObjectCommand({
-          Bucket: process.env.AWS_BUCKET_NAME!,
-          Key: thumbnailKey,
-        }),
-      );
+      await deleteFileFromS3(episode.thumbnailUrl);
 
       // -------------------------
       // Delete Video from S3
       // -------------------------
 
-      const videoKey = getS3KeyFromUrl(episode.videoUrl);
-
-      await s3.send(
-        new DeleteObjectCommand({
-          Bucket: process.env.AWS_BUCKET_NAME!,
-          Key: videoKey,
-        }),
-      );
+      await deleteFileFromS3(episode.videoUrl);
 
       // -------------------------
       // Delete Episode from MongoDB

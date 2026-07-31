@@ -9,47 +9,53 @@ export default async function handler(
   try {
     const { currentUser } = await serverAuth(req, res);
 
-    // ---------------- GET ----------------
-    if (req.method === "GET") {
-      const series = await prismadb.series.findMany({
-        where: {
-          userId: currentUser.id,
-        },
-        orderBy: {
-          createdAt: "desc",
-        },
-      });
-
-      return res.status(200).json(series);
-    }
-
-    // ---------------- POST ----------------
-    if (req.method === "POST") {
-      const { title, description, genre, thumbnailUrl, bannerUrl } = req.body;
-
-      if (!title || !description || !genre || !thumbnailUrl) {
-        return res.status(400).json({
-          error: "Missing required fields",
+    switch (req.method) {
+      case "GET": {
+        const series = await prismadb.series.findMany({
+          where: {
+            userId: currentUser.id,
+          },
+          orderBy: {
+            createdAt: "desc",
+          },
         });
+
+        return res.status(200).json(series);
       }
 
-      const series = await prismadb.series.create({
-        data: {
-          title,
-          description,
-          genre,
-          thumbnailUrl,
-          bannerUrl,
-          userId: currentUser.id,
-        },
-      });
+      case "POST": {
+        const { title, description, genre, thumbnailUrl, bannerUrl } = req.body;
 
-      return res.status(200).json(series);
+        if (!title || !description || !genre || !thumbnailUrl) {
+          return res.status(400).json({
+            error: "Missing required fields",
+          });
+        }
+
+        const series = await prismadb.series.create({
+          data: {
+            title,
+            description,
+            genre,
+            thumbnailUrl,
+            bannerUrl,
+            userId: currentUser.id,
+          },
+        });
+
+        return res.status(201).json(series);
+      }
+
+      default:
+        return res.status(405).json({
+          error: "Method Not Allowed",
+        });
     }
-
-    return res.status(405).end();
   } catch (error) {
-    console.log(error);
-    return res.status(500).end();
+    console.error(error);
+
+    return res.status(500).json({
+      error: "Internal Server Error",
+    });
   }
 }

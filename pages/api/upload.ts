@@ -1,8 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import fs from "fs";
 import formidable from "formidable";
-import { PutObjectCommand } from "@aws-sdk/client-s3";
-import { s3 } from "@/libs/s3";
+import { uploadFileToS3 } from "@/libs/s3";
 
 export const config = {
   api: {
@@ -34,12 +33,6 @@ export default async function handler(
         });
       }
 
-      console.log("==========");
-      console.log("Type:", type);
-      console.log("Filename:", file.originalFilename);
-      console.log("Mimetype:", file.mimetype);
-      console.log("==========");
-
       const fileBuffer = fs.readFileSync(file.filepath);
 
       // Decide folder based on type
@@ -65,17 +58,11 @@ export default async function handler(
       // Create one key and reuse it
       const key = `${folder}/${Date.now()}-${file.originalFilename}`;
 
-      await s3.send(
-        new PutObjectCommand({
-          Bucket: process.env.AWS_BUCKET_NAME!,
-          Key: key,
-          Body: fileBuffer,
-          ContentType: file.mimetype || undefined,
-        }),
+      const url = await uploadFileToS3(
+        key,
+        fileBuffer,
+        file.mimetype || undefined,
       );
-
-      // Generate URL
-      const url = `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`;
 
       return res.status(200).json({
         success: true,

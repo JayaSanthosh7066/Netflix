@@ -1,6 +1,8 @@
 import { useState } from "react";
+import { useRouter } from "next/router";
 import ImagePicker from "@/components/ImagePicker";
 export default function CreateSeries() {
+  const router = useRouter();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [genre, setGenre] = useState("");
@@ -79,12 +81,11 @@ export default function CreateSeries() {
         throw new Error("Failed to create series");
       }
 
-      const createdSeries = await response.json();
-
-      console.log(createdSeries);
+      await response.json();
 
       alert("Series Created Successfully!");
 
+      router.push("/admin/series");
       // Later we'll redirect here
       // router.push(`/admin/series/${createdSeries.id}`);
     } catch (error) {

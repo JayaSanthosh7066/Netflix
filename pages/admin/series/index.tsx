@@ -1,18 +1,64 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
+
+interface Series {
+  id: string;
+  title: string;
+  description: string;
+  genre: string;
+  thumbnailUrl: string;
+}
+
 export default function SeriesPage() {
-  const [series, setSeries] = useState<any[]>([]);
   const router = useRouter();
+
+  const [series, setSeries] = useState<Series[]>([]);
+
   useEffect(() => {
-    loadSeries();
+    fetchSeries();
   }, []);
 
-  const loadSeries = async () => {
-    const response = await fetch("/api/series");
-    const data = await response.json();
+  const fetchSeries = async () => {
+    try {
+      const response = await fetch("/api/series");
 
-    setSeries(data);
+      if (!response.ok) {
+        throw new Error("Failed to load series");
+      }
+
+      const data = await response.json();
+
+      setSeries(data);
+    } catch (error: any) {
+      alert(error.message);
+    }
+  };
+
+  const handleDeleteSeries = async (seriesId: string) => {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this series?\n\nThis will permanently delete:\n\n• The series\n• All episodes\n• All episode videos\n• All thumbnails\n• The series banner\n\nThis action cannot be undone.",
+    );
+
+    if (!confirmed) return;
+
+    try {
+      const response = await fetch(`/api/series/${seriesId}`, {
+        method: "DELETE",
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to delete series");
+      }
+
+      alert(data.message);
+
+      await fetchSeries();
+    } catch (error: any) {
+      alert(error.message);
+    }
   };
 
   return (
@@ -21,55 +67,62 @@ export default function SeriesPage() {
         <h1 className="text-4xl font-bold">Series</h1>
 
         <Link href="/admin/series/new">
-          <button className="bg-red-600 px-5 py-3 rounded-lg">
+          <button className="bg-red-600 px-5 py-3 rounded-lg hover:bg-red-700 transition">
             + Create Series
           </button>
         </Link>
       </div>
 
-      {series.length === 0 && <p>No Series Created Yet.</p>}
+      {series.length === 0 ? (
+        <div className="text-center text-zinc-400 mt-20">
+          <p className="text-xl">No Series Created Yet.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {series.map((item) => (
+            <div
+              key={item.id}
+              className="bg-zinc-800 rounded-xl overflow-hidden shadow-lg"
+            >
+              <img
+                src={item.thumbnailUrl}
+                alt={item.title}
+                className="w-full h-52 object-cover"
+              />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {series.map((item) => (
-          <div
-            key={item.id}
-            className="bg-zinc-800 rounded-xl overflow-hidden shadow-lg"
-          >
-            <img
-              src={item.thumbnailUrl}
-              alt={item.title}
-              className="w-full h-52 object-cover"
-            />
+              <div className="p-5">
+                <h2 className="text-2xl font-bold">{item.title}</h2>
 
-            <div className="p-5">
-              <h2 className="text-2xl font-bold">{item.title}</h2>
+                <p className="text-gray-400 mt-2">{item.genre}</p>
 
-              <p className="text-gray-400 mt-2">{item.genre}</p>
+                <p className="text-sm text-gray-500 mt-3 line-clamp-3">
+                  {item.description}
+                </p>
 
-              <p className="text-sm text-gray-500 mt-3 line-clamp-3">
-                {item.description}
-              </p>
+                <div className="mt-6 flex gap-3">
+                  <button
+                    onClick={() => router.push(`/admin/series/${item.id}`)}
+                    className="bg-zinc-700 px-4 py-2 rounded hover:bg-zinc-600 transition"
+                  >
+                    Manage
+                  </button>
 
-              <div className="mt-6 flex gap-3">
-                <button
-                  onClick={() => router.push(`/admin/series/${item.id}`)}
-                  className="bg-red-600 px-4 py-2 rounded hover:bg-red-700"
-                >
-                  Manage
-                </button>
+                  <button className="bg-blue-600 px-4 py-2 rounded hover:bg-blue-700 transition">
+                    Edit
+                  </button>
 
-                <button className="bg-blue-600 px-4 py-2 rounded hover:bg-blue-700">
-                  Edit
-                </button>
-
-                <button className="bg-zinc-700 px-4 py-2 rounded hover:bg-zinc-600">
-                  Delete
-                </button>
+                  <button
+                    onClick={() => handleDeleteSeries(item.id)}
+                    className="bg-red-600 px-4 py-2 rounded hover:bg-red-700 transition"
+                  >
+                    Delete
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

@@ -19,6 +19,23 @@ export default function ManageSeries() {
 
   const [loading, setLoading] = useState(false);
 
+  const resetEpisodeForm = () => {
+    setEditingEpisode(null);
+
+    setEpisodeNumber("");
+    setTitle("");
+    setDescription("");
+    setDuration("");
+
+    setThumbnail(null);
+    setVideo(null);
+  };
+
+  const openCreateEpisodeModal = () => {
+    resetEpisodeForm();
+    setIsModalOpen(true);
+  };
+
   useEffect(() => {
     if (!router.isReady) return;
 
@@ -28,6 +45,10 @@ export default function ManageSeries() {
   const handleEditEpisode = async (episodeId: string) => {
     try {
       const response = await fetch(`/api/episodes/${episodeId}`);
+
+      if (!response.ok) {
+        throw new Error("Failed to load series.");
+      }
 
       const episode = await response.json();
 
@@ -43,9 +64,8 @@ export default function ManageSeries() {
       setVideo(null);
 
       setIsModalOpen(true);
-    } catch (error) {
-      console.error(error);
-      alert("Failed to load episode.");
+    } catch (error: any) {
+      alert(error.message || "Failed to load episode.");
     }
   };
   const fetchSeries = async () => {
@@ -82,13 +102,12 @@ export default function ManageSeries() {
 
   const handleSubmitEpisode = async () => {
     try {
-      setLoading(true);
-
       if (!editingEpisode && (!thumbnail || !video)) {
         alert("Please select thumbnail and video.");
         setLoading(false);
         return;
       }
+      setLoading(true);
 
       let thumbnailUrl = editingEpisode?.thumbnailUrl;
       let videoUrl = editingEpisode?.videoUrl;
@@ -138,19 +157,9 @@ export default function ManageSeries() {
           : "Episode created successfully!",
       );
 
-      setEditingEpisode(null);
-
-      setEpisodeNumber("");
-      setTitle("");
-      setDescription("");
-      setDuration("");
-
-      setThumbnail(null);
-      setVideo(null);
-
+      resetEpisodeForm();
       setIsModalOpen(false);
-
-      fetchSeries();
+      await fetchSeries();
     } catch (error: any) {
       alert(error.message);
     } finally {
@@ -235,17 +244,7 @@ export default function ManageSeries() {
 
           <button
             onClick={() => {
-              setEditingEpisode(null);
-
-              setEpisodeNumber("");
-              setTitle("");
-              setDescription("");
-              setDuration("");
-
-              setThumbnail(null);
-              setVideo(null);
-
-              setIsModalOpen(true);
+              openCreateEpisodeModal();
             }}
             className="bg-red-600 px-5 py-3 rounded-lg hover:bg-red-700"
           >
@@ -310,7 +309,6 @@ export default function ManageSeries() {
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
           <div className="bg-zinc-900 rounded-lg w-full max-w-2xl p-8">
             <h2 className="text-3xl font-bold mb-6">
-              {" "}
               {editingEpisode ? "Edit Episode" : "Add Episode"}
             </h2>
 
@@ -371,16 +369,7 @@ export default function ManageSeries() {
             <div className="flex justify-end gap-4 mt-8">
               <button
                 onClick={() => {
-                  setEditingEpisode(null);
-
-                  setEpisodeNumber("");
-                  setTitle("");
-                  setDescription("");
-                  setDuration("");
-
-                  setThumbnail(null);
-                  setVideo(null);
-
+                  resetEpisodeForm();
                   setIsModalOpen(false);
                 }}
                 className="bg-zinc-700 px-6 py-2 rounded"
