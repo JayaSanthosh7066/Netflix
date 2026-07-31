@@ -43,7 +43,24 @@ export default async function handler(
       const fileBuffer = fs.readFileSync(file.filepath);
 
       // Decide folder based on type
-      const folder = type === "thumbnail" ? "thumbnails" : "videos";
+      let folder = "";
+
+      switch (type) {
+        case "video":
+          folder = "videos";
+          break;
+
+        case "thumbnail":
+          folder = "thumbnails";
+          break;
+
+        case "banner":
+          folder = "banners";
+          break;
+
+        default:
+          folder = "others";
+      }
 
       // Create one key and reuse it
       const key = `${folder}/${Date.now()}-${file.originalFilename}`;
