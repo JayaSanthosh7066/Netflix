@@ -40,6 +40,67 @@ export default async function handler(
       return res.status(200).json(series);
     }
 
+    // ============================
+    // PATCH Series
+    // ============================
+
+    if (req.method === "PATCH") {
+      const { title, description, genre, thumbnailUrl, bannerUrl } = req.body;
+      if (!title?.trim() || !description?.trim() || !genre?.trim()) {
+        return res.status(400).json({
+          error: "Missing required fields",
+        });
+      }
+
+      const series = await prismadb.series.findUnique({
+        where: {
+          id: seriesId,
+        },
+      });
+
+      if (!series) {
+        return res.status(404).json({
+          error: "Series not found",
+        });
+      }
+
+      // Verify ownership
+      if (series.userId !== currentUser.id) {
+        return res.status(403).json({
+          error: "Unauthorized",
+        });
+      }
+
+      // Delete old thumbnail if changed
+      if (thumbnailUrl && thumbnailUrl !== series.thumbnailUrl) {
+        await deleteFileFromS3(series.thumbnailUrl);
+      }
+
+      // Delete old banner if changed
+      if (bannerUrl && series.bannerUrl && bannerUrl !== series.bannerUrl) {
+        await deleteFileFromS3(series.bannerUrl);
+      }
+
+      const updatedSeries = await prismadb.series.update({
+        where: {
+          id: seriesId,
+        },
+        data: {
+          title: title.trim(),
+          description: description.trim(),
+          genre: genre.trim(),
+          thumbnailUrl,
+          bannerUrl,
+        },
+      });
+
+      return res.status(200).json({
+        success: true,
+        message: "Series updated successfully.",
+        series: updatedSeries,
+      });
+    }
+
     if (req.method === "DELETE") {
       const series = await prismadb.series.findUnique({
         where: {
@@ -107,10 +168,14 @@ export default async function handler(
         message: "Series deleted successfully.",
       });
     }
-    return res.status(405).end();
+    return res.status(405).json({
+      error: "Method Not Allowed",
+    });
   } catch (error) {
-    console.log(error);
+    console.error(error);
 
-    return res.status(500).end();
+    return res.status(500).json({
+      error: "Internal Server Error",
+    });
   }
 }
