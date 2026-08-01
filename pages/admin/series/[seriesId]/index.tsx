@@ -196,6 +196,31 @@ export default function ManageSeries() {
       setLoading(false);
     }
   };
+
+  const handleToggleShowOnHome = async (episode: any) => {
+    try {
+      const response = await fetch(`/api/episodes/${episode.id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          showOnHome: !episode.showOnHome,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to update.");
+      }
+
+      await fetchSeries();
+    } catch (error: any) {
+      alert(error.message);
+    }
+  };
+
   if (!series) {
     return (
       <div className="min-h-screen bg-zinc-900 flex justify-center items-center text-white">
@@ -281,6 +306,18 @@ export default function ManageSeries() {
                       <p className="text-zinc-500 text-sm mt-1">
                         {episode.description}
                       </p>
+                      <div className="mt-3 flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={episode.showOnHome}
+                          onChange={() => handleToggleShowOnHome(episode)}
+                          className="w-4 h-4 accent-red-600 cursor-pointer"
+                        />
+
+                        <span className="text-sm text-zinc-300">
+                          Show on Home
+                        </span>
+                      </div>
                     </div>
                   </div>
 

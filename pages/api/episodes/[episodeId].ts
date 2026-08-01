@@ -82,6 +82,25 @@ export default async function handler(
         });
       }
 
+      // ==========================
+      // Toggle Show On Home
+      // ==========================
+      if (
+        Object.keys(req.body).length === 1 &&
+        typeof showOnHome === "boolean"
+      ) {
+        const updatedEpisode = await prismadb.episode.update({
+          where: {
+            id: episodeId,
+          },
+          data: {
+            showOnHome,
+          },
+        });
+
+        return res.status(200).json(updatedEpisode);
+      }
+
       // Check duplicate episode number (excluding current episode)
       const duplicateEpisode = await prismadb.episode.findFirst({
         where: {

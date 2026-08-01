@@ -10,6 +10,9 @@ import useMovieList from "@/hooks/useMovieList";
 import useFavorites from "@/hooks/useFavorites";
 import useInfoModalStore from "@/hooks/useInfoModalStore";
 import useRecent from "@/hooks/useRecent";
+import useSeriesList from "@/hooks/useSeriesList";
+
+import SeriesList from "@/components/series/SeriesList";
 
 export async function getServerSideProps(context: NextPageContext) {
   const session = await getSession(context);
@@ -32,6 +35,7 @@ const Home = () => {
   const { data: movies = [] } = useMovieList();
   const { data: favorites = [] } = useFavorites();
   const { data: recentMovies = [] } = useRecent();
+  const { data: series = [] } = useSeriesList();
   const { isOpen, closeModal } = useInfoModalStore();
 
   return (
@@ -43,6 +47,7 @@ const Home = () => {
         <MovieList title="Trending Now" data={movies} />
         <MovieList title="My List" data={favorites} />
         <MovieList title="Recently Added" data={recentMovies} />
+        <SeriesList title="Series" data={series} />
       </div>
     </>
   );
