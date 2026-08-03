@@ -23,6 +23,7 @@ model User {
   sessions Session[]
   accounts Account[]
   favoriteIds String[] @db.ObjectId
+  favoriteSeriesIds String[] @db.ObjectId
   movies         Movie[]
   series Series[]
 }

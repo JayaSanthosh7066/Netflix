@@ -22,21 +22,61 @@ const EpisodeCard: React.FC<EpisodeCardProps> = ({ episode, seriesId }) => {
   }, [router, episode.id, seriesId]);
   return (
     <div
+      onClick={redirectToWatch}
       className="
-        flex
-        gap-6
-        bg-zinc-900
-        hover:bg-zinc-800
-        transition
-        rounded-lg
-        p-4
-      "
+    group
+    flex
+    gap-6
+    bg-zinc-900
+    hover:bg-zinc-800
+    transition-all
+    duration-300
+    rounded-lg
+    p-4
+    cursor-pointer
+  "
     >
-      <img
-        src={episode.thumbnailUrl}
-        alt={episode.title}
-        className="w-48 h-28 rounded-md object-cover"
-      />
+      <div className="relative w-48 h-28 overflow-hidden rounded-md">
+        <img
+          src={episode.thumbnailUrl}
+          alt={episode.title}
+          className="
+      w-full
+      h-full
+      object-cover
+      transition-transform
+      duration-300
+      group-hover:scale-105
+    "
+        />
+
+        <div
+          className="
+      absolute
+      inset-0
+      bg-black/40
+      opacity-0
+      group-hover:opacity-100
+      transition
+      duration-300
+      flex
+      items-center
+      justify-center
+    "
+        >
+          <PlayIcon
+            className="
+    w-12
+    h-12
+    text-white
+    scale-75
+    group-hover:scale-100
+    transition-transform
+    duration-300
+  "
+          />
+        </div>
+      </div>
 
       <div className="flex-1">
         <div className="flex justify-between items-center">
@@ -49,24 +89,6 @@ const EpisodeCard: React.FC<EpisodeCardProps> = ({ episode, seriesId }) => {
 
         <p className="text-zinc-400 mt-3 line-clamp-3">{episode.description}</p>
       </div>
-
-      <button
-        className="
-          w-12
-          h-12
-          rounded-full
-          bg-white
-          hover:bg-neutral-300
-          transition
-          flex
-          items-center
-          justify-center
-          self-center
-        "
-        onClick={redirectToWatch}
-      >
-        <PlayIcon className="w-6 text-black" />
-      </button>
     </div>
   );
 };

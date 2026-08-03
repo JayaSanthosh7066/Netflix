@@ -1,183 +1,126 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/router";
 
-export default function AdminPage() {
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [genre, setGenre] = useState("");
-  const [duration, setDuration] = useState("");
+interface Movie {
+  id: string;
+  title: string;
+  description: string;
+  genre: string;
+  thumbnailUrl: string;
+}
 
-  const [thumbnail, setThumbnail] = useState<File | null>(null);
-  const [video, setVideo] = useState<File | null>(null);
+export default function MoviesPage() {
+  const router = useRouter();
 
-  //   const handleSubmit = () => {
-  //     console.log({
-  //       title,
-  //       description,
-  //       genre,
-  //       duration,
-  //       thumbnail,
-  //       video,
-  //     });
-  //   };
-  const uploadFile = async (file: File, type: "video" | "thumbnail") => {
-    const formData = new FormData();
+  const [movies, setMovies] = useState<Movie[]>([]);
 
-    formData.append("file", file);
-    formData.append("type", type);
+  useEffect(() => {
+    fetchMovies();
+  }, []);
 
-    const response = await fetch("/api/upload", {
-      method: "POST",
-      body: formData,
-    });
+  const fetchMovies = async () => {
+    try {
+      const response = await fetch("/api/movies");
 
-    return await response.json();
+      if (!response.ok) {
+        throw new Error("Failed to load movies");
+      }
+
+      const data = await response.json();
+
+      setMovies(data);
+    } catch (error: any) {
+      alert(error.message);
+    }
   };
 
-  const handleSubmit = async () => {
-    if (!video) {
-      alert("Please select a video");
-      return;
+  const handleDeleteMovie = async (movieId: string) => {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this movie?\n\nThis action cannot be undone.",
+    );
+
+    if (!confirmed) return;
+
+    try {
+      const response = await fetch(`/api/movies/${movieId}`, {
+        method: "DELETE",
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to delete movie");
+      }
+
+      alert(data.message);
+
+      fetchMovies();
+    } catch (error: any) {
+      alert(error.message);
     }
-
-    if (!thumbnail) {
-      alert("Please select a thumbnail");
-      return;
-    }
-
-    // Upload video first
-    const videoResponse = await uploadFile(video, "video");
-    console.log("Video:", videoResponse);
-
-    // Upload thumbnail next
-    const thumbnailResponse = await uploadFile(thumbnail, "thumbnail");
-    console.log("Thumbnail:", thumbnailResponse);
-
-    // alert("Both files uploaded successfully!");
-    await fetch("/api/movie", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        title,
-        description,
-        genre,
-        duration,
-        videoUrl: videoResponse.url,
-        thumbnailUrl: thumbnailResponse.url,
-      }),
-    });
-
-    alert("Movie uploaded successfully!");
   };
 
   return (
-    <div className="min-h-screen bg-zinc-900 text-white">
-      <div className="max-w-5xl mx-auto py-10 px-6">
-        <h1 className="text-5xl font-bold mb-10 text-red-600">Add a Memory</h1>
+    <div className="min-h-screen bg-zinc-900 text-white p-10">
+      <div className="flex justify-between items-center mb-10">
+        <h1 className="text-4xl font-bold">Movies</h1>
 
-        <div className="bg-zinc-800 rounded-xl p-8 shadow-xl">
-          <h2 className="text-2xl font-semibold mb-6">Upload A Video</h2>
-
-          {/* Title */}
-
-          <div className="mb-5">
-            <label className="block mb-2">Video Title</label>
-
-            <input
-              type="text"
-              placeholder="Enter video title..."
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="w-full rounded-lg bg-zinc-700 p-3 outline-none focus:ring-2 focus:ring-red-500"
-            />
-          </div>
-
-          {/* Description */}
-
-          <div className="mb-5">
-            <label className="block mb-2">Description</label>
-
-            <textarea
-              rows={4}
-              placeholder="Video description..."
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="w-full rounded-lg bg-zinc-700 p-3 outline-none resize-none focus:ring-2 focus:ring-red-500"
-            />
-          </div>
-
-          {/* Genre + Duration */}
-
-          <div className="grid grid-cols-2 gap-6">
-            <div>
-              <label className="block mb-2">Genre</label>
-
-              <select
-                value={genre}
-                onChange={(e) => setGenre(e.target.value)}
-                className="w-full rounded-lg bg-zinc-700 p-3"
-              >
-                <option value="">Choose Genre</option>
-                <option>Travel</option>
-                <option>Family</option>
-                <option>Adventure</option>
-                <option>Music</option>
-                <option>Education</option>
-                <option>Personal</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block mb-2">Duration</label>
-
-              <input
-                value={duration}
-                onChange={(e) => setDuration(e.target.value)}
-                placeholder="15 min"
-                className="w-full rounded-lg bg-zinc-700 p-3"
-              />
-            </div>
-          </div>
-
-          {/* Thumbnail */}
-
-          <div className="mt-6">
-            <label className="block mb-2">Thumbnail</label>
-
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) =>
-                setThumbnail(e.target.files ? e.target.files[0] : null)
-              }
-              className="w-full rounded-lg bg-zinc-700 p-3"
-            />
-          </div>
-
-          {/* Video */}
-
-          <div className="mt-6">
-            <label className="block mb-2">Video</label>
-
-            <input
-              type="file"
-              accept="video/*"
-              onChange={(e) =>
-                setVideo(e.target.files ? e.target.files[0] : null)
-              }
-              className="w-full rounded-lg bg-zinc-700 p-3"
-            />
-          </div>
-
-          <button
-            onClick={handleSubmit}
-            className="mt-8 w-full bg-red-600 hover:bg-red-700 transition rounded-lg py-4 text-xl font-semibold"
-          >
-            Upload Video
+        <Link href="/admin/movies/new">
+          <button className="bg-red-600 px-5 py-3 rounded-lg hover:bg-red-700 transition">
+            + Upload Memory
           </button>
-        </div>
+        </Link>
       </div>
+
+      {movies.length === 0 ? (
+        <div className="text-center text-zinc-400 mt-20">
+          <p className="text-xl">No Movies Uploaded Yet.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {movies.map((movie) => (
+            <div
+              key={movie.id}
+              className="bg-zinc-800 rounded-xl overflow-hidden shadow-lg"
+            >
+              <img
+                src={movie.thumbnailUrl}
+                alt={movie.title}
+                className="w-full h-52 object-cover"
+              />
+
+              <div className="p-5">
+                <h2 className="text-2xl font-bold">{movie.title}</h2>
+
+                <p className="text-gray-400 mt-2">{movie.genre}</p>
+
+                <p className="text-sm text-gray-500 mt-3 line-clamp-3">
+                  {movie.description}
+                </p>
+
+                <div className="mt-6 flex gap-3">
+                  <button
+                    onClick={() =>
+                      router.push(`/admin/movies/${movie.id}/edit`)
+                    }
+                    className="flex-1 bg-blue-600 py-2 rounded hover:bg-blue-700 transition"
+                  >
+                    Edit
+                  </button>
+
+                  <button
+                    onClick={() => handleDeleteMovie(movie.id)}
+                    className="flex-1 bg-red-600 py-2 rounded hover:bg-red-700 transition"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

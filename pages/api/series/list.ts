@@ -19,6 +19,13 @@ export default async function handler(
       where: {
         userId: currentUser.id,
       },
+      include: {
+        episodes: {
+          orderBy: {
+            episodeNumber: "asc",
+          },
+        },
+      },
       orderBy: {
         createdAt: "desc",
       },

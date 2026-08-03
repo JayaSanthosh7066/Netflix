@@ -7,7 +7,7 @@ import { type } from "os";
 
 const Watch = () => {
   const router = useRouter();
-  const { movieId, type, seriesId } = router.query;
+  const { movieId, type, seriesId, from } = router.query;
   const movie = useMovie(type === "episode" ? undefined : (movieId as string));
 
   const episode = useEpisode(
@@ -21,11 +21,7 @@ const Watch = () => {
       <nav className="fixed w-full p-4 z-10 flex flex-row items-center gap-8 bg-black bg-opacity-70">
         <ArrowLeftIcon
           onClick={() => {
-            if (type === "episode" && seriesId) {
-              router.push(`/series/${seriesId}`);
-            } else {
-              router.push("/");
-            }
+            router.back();
           }}
           className="w-4 md:w-10 text-white cursor-pointer hover:opacity-80 transition"
         />
