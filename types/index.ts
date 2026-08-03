@@ -8,15 +8,6 @@ export interface MovieInterface {
   genre: string;
 }
 
-export interface SeriesInterface {
-  id: string;
-  title: string;
-  description: string;
-  genre: string;
-  thumbnailUrl: string;
-  bannerUrl?: string;
-}
-
 export interface EpisodeInterface {
   id: string;
   episodeNumber: number;
@@ -25,4 +16,18 @@ export interface EpisodeInterface {
   duration: string;
   thumbnailUrl: string;
   videoUrl: string;
+}
+
+export interface SeriesInterface {
+  id: string;
+  title: string;
+  description: string;
+  genre: string;
+  thumbnailUrl: string;
+  bannerUrl?: string;
+
+  createdAt: string;
+  updatedAt: string;
+
+  episodes?: EpisodeInterface[];
 }
