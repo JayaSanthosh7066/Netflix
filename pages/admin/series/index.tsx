@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import ImagePicker from "@/components/ImagePicker";
+import { uploadFile } from "@/libs/uploadFile";
 
 interface Series {
   id: string;
@@ -46,26 +47,6 @@ export default function SeriesPage() {
     } catch (error: any) {
       alert(error.message);
     }
-  };
-
-  const uploadFile = async (file: File, type: "thumbnail" | "banner") => {
-    const formData = new FormData();
-
-    formData.append("file", file);
-    formData.append("type", type);
-
-    const response = await fetch("/api/upload", {
-      method: "POST",
-      body: formData,
-    });
-
-    if (!response.ok) {
-      throw new Error(`${type} upload failed`);
-    }
-
-    const data = await response.json();
-
-    return data.url;
   };
 
   const handleDeleteSeries = async (seriesId: string) => {
@@ -139,12 +120,14 @@ export default function SeriesPage() {
 
       // Upload new thumbnail only if selected
       if (thumbnail) {
-        thumbnailUrl = await uploadFile(thumbnail, "thumbnail");
+        const response = await uploadFile(thumbnail, "thumbnail");
+        thumbnailUrl = response.url;
       }
 
       // Upload new banner only if selected
       if (banner) {
-        bannerUrl = await uploadFile(banner, "banner");
+        const response = await uploadFile(banner, "banner");
+        bannerUrl = response.url;
       }
 
       const response = await fetch(`/api/series/${editingSeries.id}`, {

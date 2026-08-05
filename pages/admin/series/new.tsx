@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useRouter } from "next/router";
 import ImagePicker from "@/components/ImagePicker";
+import { uploadFile } from "@/libs/uploadFile";
 export default function CreateSeries() {
   const router = useRouter();
   const [title, setTitle] = useState("");
@@ -9,26 +10,6 @@ export default function CreateSeries() {
 
   const [thumbnail, setThumbnail] = useState<File | null>(null);
   const [banner, setBanner] = useState<File | null>(null);
-
-  const uploadFile = async (file: File, type: "thumbnail" | "banner") => {
-    const formData = new FormData();
-
-    formData.append("file", file);
-    formData.append("type", type);
-
-    const response = await fetch("/api/upload", {
-      method: "POST",
-      body: formData,
-    });
-
-    if (!response.ok) {
-      throw new Error("Failed to upload file");
-    }
-
-    const data = await response.json();
-
-    return data.url;
-  };
 
   const handleSubmit = async () => {
     try {
@@ -53,13 +34,16 @@ export default function CreateSeries() {
       }
 
       // Upload Thumbnail
-      const thumbnailUrl = await uploadFile(thumbnail, "thumbnail");
+      // Upload Thumbnail
+      const thumbnailResponse = await uploadFile(thumbnail, "thumbnail");
+      const thumbnailUrl = thumbnailResponse.url;
 
       // Upload Banner (Optional)
       let bannerUrl = "";
 
       if (banner) {
-        bannerUrl = await uploadFile(banner, "banner");
+        const bannerResponse = await uploadFile(banner, "banner");
+        bannerUrl = bannerResponse.url;
       }
 
       // Save Series

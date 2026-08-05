@@ -1,7 +1,7 @@
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-
+import { uploadFile } from "@/libs/uploadFile";
 export default function ManageSeries() {
   const router = useRouter();
 
@@ -80,26 +80,6 @@ export default function ManageSeries() {
     }
   };
 
-  const uploadFile = async (file: File, type: "thumbnail" | "video") => {
-    const formData = new FormData();
-
-    formData.append("file", file);
-    formData.append("type", type);
-
-    const response = await fetch("/api/upload", {
-      method: "POST",
-      body: formData,
-    });
-
-    if (!response.ok) {
-      throw new Error(`${type} upload failed`);
-    }
-
-    const data = await response.json();
-
-    return data.url;
-  };
-
   const handleSubmitEpisode = async () => {
     try {
       if (!editingEpisode && (!thumbnail || !video)) {
@@ -138,8 +118,8 @@ export default function ManageSeries() {
           description,
           duration,
           episodeNumber: Number(episodeNumber),
-          thumbnailUrl,
-          videoUrl,
+          thumbnailUrl: thumbnailUrl.url,
+          videoUrl: videoUrl ? videoUrl.url : "",
           seriesId: series.id,
           showOnHome: editingEpisode?.showOnHome ?? false,
         }),

@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
+import { uploadFile } from "@/libs/uploadFile";
+
 export default function AdminPage() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -26,19 +28,6 @@ export default function AdminPage() {
   //       video,
   //     });
   //   };
-  const uploadFile = async (file: File, type: "video" | "thumbnail") => {
-    const formData = new FormData();
-
-    formData.append("file", file);
-    formData.append("type", type);
-
-    const response = await fetch("/api/upload", {
-      method: "POST",
-      body: formData,
-    });
-
-    return await response.json();
-  };
 
   const handleSubmit = async () => {
     try {
