@@ -647,30 +647,26 @@ const Watch = () => {
             </button>
 
             {/* BACK 10 */}
-
-            {/* BACK 10 */}
             <button
               onClick={() => skip(-10)}
               title="Back 10 seconds"
               className="
-    flex
-    h-9
+    hidden
+    md:flex
+    h-10
     items-center
     gap-1
     rounded-md
-    px-1
+    px-2
     text-white
     transition-all
     duration-200
     hover:bg-white/10
     active:scale-95
-    md:h-10
-    md:px-2
   "
             >
-              <ArrowUturnLeftIcon className="h-5 w-5 md:h-6 md:w-6" />
-
-              <span className="text-[11px] font-semibold md:text-xs">10s</span>
+              <ArrowUturnLeftIcon className="h-6 w-6" />
+              <span className="text-xs font-semibold">10s</span>
             </button>
 
             {/* FORWARD 10 */}
@@ -678,24 +674,22 @@ const Watch = () => {
               onClick={() => skip(10)}
               title="Forward 10 seconds"
               className="
-    flex
-    h-9
+    hidden
+    md:flex
+    h-10
     items-center
     gap-1
     rounded-md
-    px-1
+    px-2
     text-white
     transition-all
     duration-200
     hover:bg-white/10
     active:scale-95
-    md:h-10
-    md:px-2
   "
             >
-              <ArrowUturnRightIcon className="h-5 w-5 md:h-6 md:w-6" />
-
-              <span className="text-[11px] font-semibold md:text-xs">10s</span>
+              <ArrowUturnRightIcon className="h-6 w-6" />
+              <span className="text-xs font-semibold">10s</span>
             </button>
 
             {/* VOLUME */}
