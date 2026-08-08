@@ -35,10 +35,10 @@ const MovieList: React.FC<MovieListProps> = ({ data, title }) => {
               key={movie.id}
               className="
                 flex-none
-                w-[170px]
-                sm:w-[200px]
-                md:w-[240px]
-                lg:w-[270px]
+                w-[130px]
+sm:w-[150px]
+md:w-[180px]
+lg:w-[215px]
                 snap-start
               "
             >

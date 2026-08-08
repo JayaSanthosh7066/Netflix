@@ -1,6 +1,6 @@
 import React, { useCallback } from "react";
 import { useRouter } from "next/router";
-import { ChevronDownIcon } from "@heroicons/react/24/outline";
+import { ChevronDownIcon, PlayIcon } from "@heroicons/react/24/solid";
 
 import { SeriesInterface } from "@/types";
 import SeriesPlayButton from "@/components/series/SeriesPlayButton";
@@ -15,133 +15,116 @@ const SeriesCard: React.FC<SeriesCardProps> = ({ data }) => {
   const router = useRouter();
   const { openModal } = useSeriesInfoModalStore();
 
-  const redirectToWatch = useCallback(() => {
-    const firstEpisode = data.episodes?.[0];
+  const firstEpisode = data.episodes?.[0];
 
+  const redirectToWatch = useCallback(() => {
     if (!firstEpisode) return;
 
     router.push(`/watch/${firstEpisode.id}?type=episode&seriesId=${data.id}`);
-  }, [router, data]);
-  const handleCardClick = useCallback(() => {
-    if (window.innerWidth < 640) {
-      router.push(`/series/${data.id}`);
-      return;
-    }
-
-    redirectToWatch();
-  }, [router, data.id, redirectToWatch]);
+  }, [router, firstEpisode, data.id]);
 
   return (
-    <div className="group bg-zinc-900 col-span relative h-[12vw]">
-      <img
-        onClick={handleCardClick}
-        src={data.thumbnailUrl}
-        alt={data.title}
-        draggable={false}
-        className="
-          cursor-pointer
-          object-cover
-          transition
-          shadow-xl
-          rounded-md
-          group-hover:opacity-90
-          sm:group-hover:opacity-0
-          delay-300
-          w-full
-          h-[12vw]
-        "
-      />
-
-      <div
-        className="
-          opacity-0
-          absolute
-          top-0
-          transition
-          duration-200
-          z-10
-          invisible
-          sm:visible
-          delay-300
-          w-full
-          scale-0
-          group-hover:scale-110
-          group-hover:-translate-y-[6vw]
-          group-hover:translate-x-[2vw]
-          group-hover:opacity-100
-        "
-      >
+    <div
+      className="group relative w-full cursor-pointer"
+      onClick={() => openModal(data.id)}
+    >
+      {/* IMAGE */}
+      <div className="relative w-full aspect-[2/3] overflow-hidden rounded-md">
         <img
-          onClick={redirectToWatch}
           src={data.thumbnailUrl}
           alt={data.title}
           draggable={false}
           className="
-            cursor-pointer
-            object-cover
-            shadow-xl
-            rounded-t-md
+            h-full
             w-full
-            h-[12vw]
+            object-cover
+            transition-transform
+            duration-300
+            group-hover:scale-105
           "
         />
 
+        {/* Gradient */}
         <div
           className="
-            z-10
-            bg-zinc-800
-            p-2
-            lg:p-4
             absolute
-            w-full
-            shadow-md
-            rounded-b-md
+            inset-0
+            bg-gradient-to-t
+            from-black/70
+            via-black/10
+            to-transparent
+          "
+        />
+
+        {/* TOP RIGHT BUTTONS */}
+        <div
+          className="
+            absolute
+            top-4
+            right-4
+            flex
+            gap-3
+            opacity-0
+            group-hover:opacity-100
+            transition-all
+            duration-300
           "
         >
-          <div className="flex items-center gap-3">
-            <SeriesPlayButton
-              seriesId={data.id}
-              firstEpisodeId={data.episodes?.[0]?.id}
-            />
-
+          <div onClick={(e) => e.stopPropagation()}>
             <SeriesFavoriteButton seriesId={data.id} />
-
-            <div
-              onClick={() => openModal(data.id)}
-              className="
-                cursor-pointer
-                ml-auto
-                group/item
-                w-6
-                h-6
-                lg:w-10
-                lg:h-10
-                border-white
-                border-2
-                rounded-full
-                flex
-                justify-center
-                items-center
-                transition
-                hover:border-neutral-300
-              "
-            >
-              <ChevronDownIcon className="text-white group-hover/item:text-neutral-300 w-4 lg:w-6" />
-            </div>
           </div>
 
-          <p className="text-green-400 font-semibold mt-4">New</p>
-
-          <div className="flex mt-4 gap-2 items-center">
-            <p className="text-white text-[10px] lg:text-sm">
-              {data.episodes?.length || 0} Episodes
-            </p>
-          </div>
-
-          <div className="flex items-center gap-2 mt-4 text-[8px] lg:text-sm text-white">
-            <p>{data.genre}</p>
-          </div>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              openModal(data.id);
+            }}
+            className="
+              flex
+              items-center
+              justify-center
+              w-8
+              h-8
+              sm:w-9
+              sm:h-9
+              md:w-10
+              md:h-10
+              rounded-md
+              bg-black/50
+              backdrop-blur-md
+              hover:bg-black/70
+              transition
+            "
+          >
+            <ChevronDownIcon className="w-5 h-5 text-white" />
+          </button>
         </div>
+      </div>
+
+      {/* TEXT */}
+      <div className="mt-3 px-1">
+        <p className="text-emerald-400 text-[10px] sm:text-xs font-medium tracking-wide">
+          {data.genre}
+        </p>
+
+        <h3
+          className="
+      mt-1
+      text-white
+      text-sm
+      sm:text-base
+      md:text-lg
+      font-semibold
+      leading-tight
+      line-clamp-2
+    "
+        >
+          {data.title}
+        </h3>
+
+        <p className="mt-1.5 text-[10px] sm:text-xs md:text-sm text-zinc-400">
+          {data.episodes?.length || 0} Episodes
+        </p>
       </div>
     </div>
   );

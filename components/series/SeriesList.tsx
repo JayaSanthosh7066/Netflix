@@ -10,24 +10,44 @@ interface SeriesListProps {
 }
 
 const SeriesList: React.FC<SeriesListProps> = ({ data, title }) => {
-  if (isEmpty(data)) {
-    return null;
-  }
+  if (isEmpty(data)) return null;
 
   return (
-    <div className="px-4 md:px-12 mt-4 space-y-8">
-      <div>
-        <p className="text-white text-md md:text-xl lg:text-2xl font-semibold mb-4">
+    <section className="mb-12">
+      <div className="px-5 md:px-10 lg:px-14">
+        <h2 className="text-white text-2xl md:text-3xl font-bold mb-5">
           {title}
-        </p>
+        </h2>
 
-        <div className="grid grid-cols-4 gap-2">
+        <div
+          className="
+            flex
+            gap-4
+            overflow-x-auto
+            pb-5
+            scrollbar-hide
+            snap-x
+            snap-mandatory
+          "
+        >
           {data.map((series) => (
-            <SeriesCard key={series.id} data={series} />
+            <div
+              key={series.id}
+              className="
+                flex-none
+                w-[130px]
+sm:w-[150px]
+md:w-[180px]
+lg:w-[215px]
+                snap-start
+              "
+            >
+              <SeriesCard data={series} />
+            </div>
           ))}
         </div>
       </div>
-    </div>
+    </section>
   );
 };
 

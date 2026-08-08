@@ -237,8 +237,8 @@ const Billboard: React.FC = () => {
                 text-white
                 font-bold
                 text-base
-                sm:text-xl
-                md:text-2xl
+                sm:text-lg
+                md:text-xl
               "
             >
               #1 in Trending Today

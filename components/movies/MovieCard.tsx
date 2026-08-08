@@ -30,12 +30,14 @@ const MovieCard: React.FC<MovieCardProps> = ({ data }) => {
       "
     >
       {/* Image */}
-      <div className="relative overflow-hidden rounded-md">
+      <div
+        onClick={redirectToWatch}
+        className="relative overflow-hidden rounded-md cursor-pointer"
+      >
         <img
           src={data.thumbnailUrl}
           alt={data.title}
           draggable={false}
-          onClick={redirectToWatch}
           className="
             w-full
             aspect-[2/3]
@@ -60,38 +62,6 @@ const MovieCard: React.FC<MovieCardProps> = ({ data }) => {
         />
 
         {/* Play Button */}
-        <div
-          className="
-            absolute
-            bottom-4
-            left-4
-            opacity-0
-            translate-y-3
-            group-hover:opacity-100
-            group-hover:translate-y-0
-            transition-all
-            duration-300
-          "
-        >
-          <button
-            onClick={redirectToWatch}
-            className="
-              flex
-              items-center
-              gap-4
-              bg-white
-              text-black
-              px-5
-              py-3
-              rounded-full
-              font-semibold
-              shadow-xl
-            "
-          >
-            <PlayIcon className="w-5 h-5" />
-            Play
-          </button>
-        </div>
 
         {/* Top Right Buttons */}
         <div
@@ -107,10 +77,15 @@ const MovieCard: React.FC<MovieCardProps> = ({ data }) => {
             duration-300
           "
         >
-          <FavoriteButton movieId={data.id} />
+          <div onClick={(e) => e.stopPropagation()}>
+            <FavoriteButton movieId={data.id} />
+          </div>
 
           <button
-            onClick={() => openModal(data.id)}
+            onClick={(e) => {
+              e.stopPropagation();
+              openModal(data.id);
+            }}
             className="
     flex items-center justify-center
     w-8 h-8
@@ -129,24 +104,29 @@ const MovieCard: React.FC<MovieCardProps> = ({ data }) => {
       </div>
 
       {/* Text */}
-      <div className="mt-4 px-1">
-        <p className="text-emerald-400 text-xs font-medium tracking-wide">
+      <div className="mt-3 px-1">
+        <p className="text-emerald-400 text-[10px] sm:text-xs font-medium tracking-wide">
           {data.genre}
         </p>
 
         <h3
           className="
-            mt-1
-            text-white
-            text-xl md:text-2xl
-            font-semibold
-            line-clamp-2
-          "
+      mt-1
+      text-white
+      text-sm
+      sm:text-base
+      md:text-lg
+      font-semibold
+      leading-tight
+      line-clamp-2
+    "
         >
           {data.title}
         </h3>
 
-        <p className="mt-2 text-sm text-zinc-400">{data.duration}</p>
+        <p className="mt-1.5 text-[10px] sm:text-xs md:text-sm text-zinc-400">
+          {data.duration}
+        </p>
       </div>
     </div>
   );
