@@ -23,10 +23,18 @@ const SeriesCard: React.FC<SeriesCardProps> = ({ data }) => {
     router.push(`/watch/${firstEpisode.id}?type=episode&seriesId=${data.id}`);
   }, [router, firstEpisode, data.id]);
 
+  const handleCardClick = () => {
+    if (window.innerWidth < 768) {
+      router.push(`/series/${data.id}`);
+    } else {
+      openModal(data.id);
+    }
+  };
+
   return (
     <div
       className="group relative w-full cursor-pointer"
-      onClick={() => openModal(data.id)}
+      onClick={handleCardClick}
     >
       {/* IMAGE */}
       <div className="relative w-full aspect-[2/3] overflow-hidden rounded-md">
@@ -80,21 +88,21 @@ const SeriesCard: React.FC<SeriesCardProps> = ({ data }) => {
               openModal(data.id);
             }}
             className="
-              flex
-              items-center
-              justify-center
-              w-8
-              h-8
-              sm:w-9
-              sm:h-9
-              md:w-10
-              md:h-10
-              rounded-md
-              bg-black/50
-              backdrop-blur-md
-              hover:bg-black/70
-              transition
-            "
+    flex
+    items-center
+    justify-center
+    w-8
+    h-8
+    sm:w-9
+    sm:h-9
+    md:w-10
+    md:h-10
+    rounded-md
+    bg-black/50
+    backdrop-blur-md
+    hover:bg-black/70
+    transition
+  "
           >
             <ChevronDownIcon className="w-5 h-5 text-white" />
           </button>
