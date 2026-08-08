@@ -112,18 +112,18 @@ const MovieCard: React.FC<MovieCardProps> = ({ data }) => {
           <button
             onClick={() => openModal(data.id)}
             className="
-              w-10
-              h-10
-              rounded-md
-              bg-black/50
-              backdrop-blur-md
-              flex
-              items-center
-              justify-center
-              hover:bg-black/70
-            "
+    flex items-center justify-center
+    w-8 h-8
+    sm:w-9 sm:h-9
+    md:w-10 md:h-10
+    rounded-md
+    bg-black/50
+    backdrop-blur-md
+    hover:bg-black/70
+    transition
+  "
           >
-            <ChevronDownIcon className="w-5 h-5 text-white" />
+            <ChevronDownIcon className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
           </button>
         </div>
       </div>

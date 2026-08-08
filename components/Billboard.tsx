@@ -4,6 +4,7 @@ import { InformationCircleIcon } from "@heroicons/react/24/outline";
 import PlayButton from "@/components/PlayButton";
 import useBillboard from "@/hooks/useBillboard";
 import useInfoModalStore from "@/hooks/useInfoModalStore";
+import { PlayIcon, PauseIcon } from "@heroicons/react/24/solid";
 
 const Billboard: React.FC = () => {
   const { data } = useBillboard();
@@ -308,7 +309,9 @@ const Billboard: React.FC = () => {
                 shrink-0
               "
             >
-              <span className="text-base sm:text-lg md:text-xl">▶</span>
+              <span className="text-base sm:text-lg md:text-xl">
+                <PlayIcon className="w-5 h-5 md:w-8 md:h-8 " />
+              </span>
               Play
             </button>
 
