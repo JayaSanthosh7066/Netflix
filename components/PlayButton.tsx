@@ -1,6 +1,6 @@
-import React from 'react';
-import { PlayIcon } from '@heroicons/react/24/solid';
-import { useRouter } from 'next/router';
+import React from "react";
+import { PlayIcon } from "@heroicons/react/24/solid";
+import { useRouter } from "next/router";
 
 interface PlayButtonProps {
   movieId: string;
@@ -10,27 +10,51 @@ const PlayButton: React.FC<PlayButtonProps> = ({ movieId }) => {
   const router = useRouter();
 
   return (
-    <button 
+    <button
       onClick={() => router.push(`/watch/${movieId}`)}
       className="
-        bg-white 
-        rounded-md 
-        py-1 md:py-2 
-        px-2 md:px-4
-        w-auto 
-        text-xs lg:text-lg 
-        font-semibold
-        flex
-        flex-row
+        group
+        inline-flex
         items-center
-        hover:bg-neutral-300
-        transition
+        justify-center
+        gap-3
+
+        h-14
+        md:h-16
+
+        px-7
+        md:px-8
+
+        rounded-lg
+
+        bg-white
+        text-black
+
+        font-semibold
+        text-lg
+
+        shadow-2xl
+        transition-all
+        duration-300
+
+        hover:bg-neutral-200
+        hover:scale-[1.03]
+        active:scale-95
+      "
+    >
+      <PlayIcon
+        className="
+          w-7
+          h-7
+          transition-transform
+          duration-300
+          group-hover:translate-x-0.5
         "
-      >
-        <PlayIcon className="w-4 md:w-7 text-black mr-1" />
-        Play
+      />
+
+      <span>Play</span>
     </button>
   );
-}
+};
 
 export default PlayButton;
