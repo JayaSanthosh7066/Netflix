@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import { useEffect } from "react";
 import { uploadFile } from "@/libs/uploadFile";
 
 export default function AdminPage() {
+  const router = useRouter();
+  const { movieId } = router.query;
+
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [genre, setGenre] = useState("");
@@ -11,38 +13,114 @@ export default function AdminPage() {
 
   const [thumbnail, setThumbnail] = useState<File | null>(null);
   const [video, setVideo] = useState<File | null>(null);
+
   const [thumbnailUrl, setThumbnailUrl] = useState("");
   const [videoUrl, setVideoUrl] = useState("");
+
   const [thumbnailPreview, setThumbnailPreview] = useState("");
   const [videoPreview, setVideoPreview] = useState("");
-  const router = useRouter();
-  const { movieId } = router.query;
 
-  //   const handleSubmit = () => {
-  //     console.log({
-  //       title,
-  //       description,
-  //       genre,
-  //       duration,
-  //       thumbnail,
-  //       video,
-  //     });
-  //   };
+  const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(true);
+
+  useEffect(() => {
+    if (!router.isReady) return;
+
+    fetchMovie();
+  }, [router.isReady]);
+
+  const fetchMovie = async () => {
+    try {
+      setFetching(true);
+
+      const response = await fetch(`/api/movies/${movieId}`);
+
+      if (!response.ok) {
+        throw new Error("Failed to load movie");
+      }
+
+      const movie = await response.json();
+
+      setTitle(movie.title);
+      setDescription(movie.description);
+      setGenre(movie.genre);
+      setDuration(movie.duration);
+
+      setThumbnailUrl(movie.thumbnailUrl);
+      setVideoUrl(movie.videoUrl);
+
+      setThumbnail(null);
+      setVideo(null);
+
+      setThumbnailPreview(movie.thumbnailUrl);
+      setVideoPreview(movie.videoUrl);
+    } catch (error: any) {
+      alert(error.message);
+    } finally {
+      setFetching(false);
+    }
+  };
+
+  const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+
+    if (!file) return;
+
+    setThumbnail(file);
+
+    const previewUrl = URL.createObjectURL(file);
+    setThumbnailPreview(previewUrl);
+  };
+
+  const handleVideoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+
+    if (!file) return;
+
+    setVideo(file);
+
+    const previewUrl = URL.createObjectURL(file);
+    setVideoPreview(previewUrl);
+  };
 
   const handleSubmit = async () => {
     try {
+      if (!title.trim()) {
+        alert("Please enter a title");
+        return;
+      }
+
+      if (!description.trim()) {
+        alert("Please enter a description");
+        return;
+      }
+
+      if (!genre) {
+        alert("Please select a genre");
+        return;
+      }
+
+      if (!duration.trim()) {
+        alert("Please enter the duration");
+        return;
+      }
+
+      setLoading(true);
+
       let updatedThumbnailUrl = thumbnailUrl;
       let updatedVideoUrl = videoUrl;
 
-      // Upload new thumbnail if selected
+      // Upload new thumbnail only if selected
       if (thumbnail) {
         const thumbnailResponse = await uploadFile(thumbnail, "thumbnail");
+
         updatedThumbnailUrl = thumbnailResponse.url;
       }
 
-      // Upload new video if selected
+      // Upload new video only if selected
       if (video) {
         const videoResponse = await uploadFile(video, "video");
+
         updatedVideoUrl = videoResponse.url;
       }
 
@@ -71,186 +149,435 @@ export default function AdminPage() {
 
       router.push("/admin/movies");
     } catch (error: any) {
-      alert(error.message);
+      alert(error.message || "Something went wrong!");
+    } finally {
+      setLoading(false);
     }
   };
 
-  useEffect(() => {
-    if (!router.isReady) return;
+  if (fetching) {
+    return (
+      <div className="min-h-screen bg-[#18181b] text-white flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div
+            className="
+              h-10
+              w-10
+              animate-spin
+              rounded-full
+              border-4
+              border-zinc-700
+              border-t-red-600
+            "
+          />
 
-    fetchMovie();
-  }, [router.isReady]);
-
-  const fetchMovie = async () => {
-    try {
-      const response = await fetch(`/api/movies/${movieId}`);
-
-      if (!response.ok) {
-        throw new Error("Failed to load movie");
-      }
-
-      const movie = await response.json();
-
-      setTitle(movie.title);
-      setDescription(movie.description);
-      setGenre(movie.genre);
-      setDuration(movie.duration);
-
-      setThumbnailUrl(movie.thumbnailUrl);
-      setVideoUrl(movie.videoUrl);
-
-      setThumbnail(null);
-      setVideo(null);
-      setThumbnailPreview(movie.thumbnailUrl);
-      setVideoPreview(movie.videoUrl);
-    } catch (error: any) {
-      alert(error.message);
-    }
-  };
+          <p className="text-sm text-zinc-500">Loading movie...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-zinc-900 text-white">
-      <div className="max-w-5xl mx-auto py-10 px-6">
-        <div className="flex items-center justify-between mb-10">
-          <div>
-            <h1 className="text-5xl font-bold text-red-600">Edit Memory</h1>
+    <div className="min-h-screen bg-[#18181b] px-4 py-6 text-white sm:px-6 lg:px-10">
+      <div className="mx-auto w-full max-w-4xl">
+        {/* BACK BUTTON */}
 
-            <p className="text-zinc-400 mt-2">
-              Update your movie details and media.
+        <button
+          type="button"
+          onClick={() => router.push("/admin/movies")}
+          className="
+            mb-6
+            inline-flex
+            min-h-[44px]
+            items-center
+            gap-2
+            text-sm
+            font-medium
+            text-zinc-400
+            transition
+            hover:text-white
+          "
+        >
+          <span className="text-xl leading-none">←</span>
+          Back to Movies
+        </button>
+
+        {/* PAGE HEADER */}
+
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
+            Edit Memory
+          </h1>
+
+          <p className="mt-2 text-sm text-zinc-500 sm:text-base">
+            Update your movie details and media.
+          </p>
+        </div>
+
+        {/* FORM CARD */}
+
+        <div
+          className="
+            overflow-hidden
+            rounded-2xl
+            border
+            border-zinc-800
+            bg-zinc-900
+            shadow-xl
+          "
+        >
+          {/* CARD HEADER */}
+
+          <div className="border-b border-zinc-800 px-5 py-5 sm:px-8">
+            <h2 className="text-xl font-semibold">Movie Details</h2>
+
+            <p className="mt-1 text-sm text-zinc-500">
+              Update the information associated with this memory.
             </p>
           </div>
 
-          <button
-            onClick={() => router.push("/admin/movies")}
-            className="bg-zinc-700 hover:bg-zinc-600 px-5 py-3 rounded-lg transition"
-          >
-            ← Back to Movies
-          </button>
-        </div>
-
-        <div className="bg-zinc-800 rounded-xl p-8 shadow-xl">
-          <h2 className="text-2xl font-semibold mb-6">Movie Details</h2>
-
-          {/* Title */}
-
-          <div className="mb-5">
-            <label className="block mb-2">Video Title</label>
-
-            <input
-              type="text"
-              placeholder="Enter video title..."
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="w-full rounded-lg bg-zinc-700 p-3 outline-none focus:ring-2 focus:ring-red-500"
-            />
-          </div>
-
-          {/* Description */}
-
-          <div className="mb-5">
-            <label className="block mb-2">Description</label>
-
-            <textarea
-              rows={4}
-              placeholder="Video description..."
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="w-full rounded-lg bg-zinc-700 p-3 outline-none resize-none focus:ring-2 focus:ring-red-500"
-            />
-          </div>
-
-          {/* Genre + Duration */}
-
-          <div className="grid grid-cols-2 gap-6">
-            <div>
-              <label className="block mb-2">Genre</label>
-
-              <select
-                value={genre}
-                onChange={(e) => setGenre(e.target.value)}
-                className="w-full rounded-lg bg-zinc-700 p-3"
-              >
-                <option value="">Choose Genre</option>
-                <option>Travel</option>
-                <option>Family</option>
-                <option>Adventure</option>
-                <option>Music</option>
-                <option>Education</option>
-                <option>Personal</option>
-              </select>
-            </div>
+          <div className="space-y-6 p-5 sm:p-8">
+            {/* TITLE */}
 
             <div>
-              <label className="block mb-2">Duration</label>
+              <label className="mb-2 block text-sm font-medium text-zinc-200">
+                Video Title
+                <span className="ml-1 text-red-500">*</span>
+              </label>
 
               <input
-                value={duration}
-                onChange={(e) => setDuration(e.target.value)}
-                placeholder="15 min"
-                className="w-full rounded-lg bg-zinc-700 p-3"
+                type="text"
+                placeholder="Enter video title..."
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className="
+                  w-full
+                  rounded-lg
+                  border
+                  border-zinc-700
+                  bg-zinc-800
+                  px-4
+                  py-3
+                  text-white
+                  placeholder-zinc-500
+                  outline-none
+                  transition
+                  focus:border-red-500
+                  focus:ring-2
+                  focus:ring-red-500/20
+                "
               />
             </div>
-          </div>
 
-          {/* Thumbnail */}
+            {/* DESCRIPTION */}
 
-          <div className="mt-6">
-            <label className="block mb-2">Thumbnail</label>
-            {thumbnailPreview && (
-              <img
-                src={thumbnailPreview}
-                className="w-64 rounded-lg object-cover"
+            <div>
+              <label className="mb-2 block text-sm font-medium text-zinc-200">
+                Description
+                <span className="ml-1 text-red-500">*</span>
+              </label>
+
+              <textarea
+                rows={5}
+                placeholder="Video description..."
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className="
+                  w-full
+                  resize-none
+                  rounded-lg
+                  border
+                  border-zinc-700
+                  bg-zinc-800
+                  px-4
+                  py-3
+                  text-white
+                  placeholder-zinc-500
+                  outline-none
+                  transition
+                  focus:border-red-500
+                  focus:ring-2
+                  focus:ring-red-500/20
+                "
               />
-            )}
+            </div>
 
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
+            {/* GENRE + DURATION */}
 
-                if (!file) return;
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+              {/* GENRE */}
 
-                setThumbnail(file);
+              <div>
+                <label className="mb-2 block text-sm font-medium text-zinc-200">
+                  Genre
+                  <span className="ml-1 text-red-500">*</span>
+                </label>
 
-                setThumbnailPreview(URL.createObjectURL(file));
-              }}
-            />
+                <select
+                  value={genre}
+                  onChange={(e) => setGenre(e.target.value)}
+                  className="
+                    w-full
+                    rounded-lg
+                    border
+                    border-zinc-700
+                    bg-zinc-800
+                    px-4
+                    py-3
+                    text-white
+                    outline-none
+                    transition
+                    focus:border-red-500
+                    focus:ring-2
+                    focus:ring-red-500/20
+                  "
+                >
+                  <option value="">Choose Genre</option>
+                  <option value="Travel">Travel</option>
+                  <option value="Family">Family</option>
+                  <option value="Adventure">Adventure</option>
+                  <option value="Music">Music</option>
+                  <option value="Education">Education</option>
+                  <option value="Personal">Personal</option>
+                </select>
+              </div>
+
+              {/* DURATION */}
+
+              <div>
+                <label className="mb-2 block text-sm font-medium text-zinc-200">
+                  Duration
+                  <span className="ml-1 text-red-500">*</span>
+                </label>
+
+                <input
+                  type="text"
+                  value={duration}
+                  onChange={(e) => setDuration(e.target.value)}
+                  placeholder="e.g. 15 min"
+                  className="
+                    w-full
+                    rounded-lg
+                    border
+                    border-zinc-700
+                    bg-zinc-800
+                    px-4
+                    py-3
+                    text-white
+                    placeholder-zinc-500
+                    outline-none
+                    transition
+                    focus:border-red-500
+                    focus:ring-2
+                    focus:ring-red-500/20
+                  "
+                />
+              </div>
+            </div>
+
+            {/* MEDIA DIVIDER */}
+
+            <div className="border-t border-zinc-800 pt-6">
+              <h3 className="text-lg font-semibold">Media Files</h3>
+
+              <p className="mt-1 text-sm text-zinc-500">
+                Preview the current media or select new files to replace them.
+              </p>
+            </div>
+
+            {/* MEDIA */}
+
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+              {/* THUMBNAIL */}
+
+              <div>
+                <label className="mb-2 block text-sm font-medium text-zinc-200">
+                  Thumbnail
+                </label>
+
+                <div
+                  className="
+                    overflow-hidden
+                    rounded-xl
+                    border
+                    border-zinc-800
+                    bg-zinc-800/50
+                  "
+                >
+                  {thumbnailPreview ? (
+                    <img
+                      src={thumbnailPreview}
+                      alt="Thumbnail preview"
+                      className="
+                        aspect-video
+                        w-full
+                        object-cover
+                      "
+                    />
+                  ) : (
+                    <div className="flex aspect-video items-center justify-center text-sm text-zinc-500">
+                      No thumbnail
+                    </div>
+                  )}
+
+                  <div className="p-4">
+                    <label
+                      className="
+                        flex
+                        min-h-[44px]
+                        cursor-pointer
+                        items-center
+                        justify-center
+                        rounded-lg
+                        bg-zinc-700
+                        px-4
+                        py-2
+                        text-sm
+                        font-medium
+                        transition
+                        hover:bg-zinc-600
+                      "
+                    >
+                      {thumbnail
+                        ? "Choose Different Thumbnail"
+                        : "Choose Thumbnail"}
+
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleThumbnailChange}
+                        className="hidden"
+                      />
+                    </label>
+
+                    {thumbnail && (
+                      <p className="mt-2 truncate text-xs text-zinc-500">
+                        {thumbnail.name}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* VIDEO */}
+
+              <div>
+                <label className="mb-2 block text-sm font-medium text-zinc-200">
+                  Video
+                </label>
+
+                <div
+                  className="
+                    overflow-hidden
+                    rounded-xl
+                    border
+                    border-zinc-800
+                    bg-zinc-800/50
+                  "
+                >
+                  {videoPreview ? (
+                    <video
+                      src={videoPreview}
+                      controls
+                      className="
+                        aspect-video
+                        w-full
+                        bg-black
+                        object-contain
+                      "
+                    />
+                  ) : (
+                    <div className="flex aspect-video items-center justify-center text-sm text-zinc-500">
+                      No video
+                    </div>
+                  )}
+
+                  <div className="p-4">
+                    <label
+                      className="
+                        flex
+                        min-h-[44px]
+                        cursor-pointer
+                        items-center
+                        justify-center
+                        rounded-lg
+                        bg-zinc-700
+                        px-4
+                        py-2
+                        text-sm
+                        font-medium
+                        transition
+                        hover:bg-zinc-600
+                      "
+                    >
+                      {video ? "Choose Different Video" : "Choose Video"}
+
+                      <input
+                        type="file"
+                        accept="video/*"
+                        onChange={handleVideoChange}
+                        className="hidden"
+                      />
+                    </label>
+
+                    {video && (
+                      <p className="mt-2 truncate text-xs text-zinc-500">
+                        {video.name}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* ACTIONS */}
+
+            <div className="border-t border-zinc-800 pt-6">
+              <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                <button
+                  type="button"
+                  onClick={() => router.push("/admin/movies")}
+                  disabled={loading}
+                  className="
+                    min-h-[48px]
+                    rounded-lg
+                    bg-zinc-800
+                    px-6
+                    py-3
+                    font-medium
+                    transition
+                    hover:bg-zinc-700
+                    disabled:cursor-not-allowed
+                    disabled:opacity-50
+                  "
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleSubmit}
+                  disabled={loading}
+                  className="
+                    min-h-[48px]
+                    rounded-lg
+                    bg-red-600
+                    px-7
+                    py-3
+                    font-semibold
+                    transition
+                    hover:bg-red-700
+                    active:scale-[0.98]
+                    disabled:cursor-not-allowed
+                    disabled:bg-zinc-700
+                    disabled:text-zinc-400
+                  "
+                >
+                  {loading ? "Updating..." : "Update Memory"}
+                </button>
+              </div>
+            </div>
           </div>
-
-          {/* Video */}
-
-          <div className="mt-6">
-            <label className="block mb-2">Video</label>
-            {videoPreview && (
-              <video
-                src={videoPreview}
-                controls
-                className="w-72 h-40 rounded-lg border border-zinc-700 bg-black"
-              />
-            )}
-
-            <input
-              type="file"
-              accept="video/*"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-
-                if (!file) return;
-
-                setVideo(file);
-
-                setVideoPreview(URL.createObjectURL(file));
-              }}
-            />
-          </div>
-
-          <button
-            onClick={handleSubmit}
-            className="mt-8 w-full bg-red-600 hover:bg-red-700 transition rounded-lg py-4 text-xl font-semibold"
-          >
-            Update Memory
-          </button>
         </div>
       </div>
     </div>
