@@ -13,11 +13,12 @@ import {
 import { useRouter } from "next/router";
 import useMovie from "@/hooks/useMovie";
 import useEpisode from "@/hooks/useEpisode";
+import useSeriesInfoModalStore from "@/hooks/useSeriesInfoModalStore";
 
 const Watch = () => {
   const router = useRouter();
 
-  const { movieId, type } = router.query;
+  const { movieId, type, seriesId } = router.query;
 
   const movie = useMovie(type === "episode" ? undefined : (movieId as string));
 
@@ -41,12 +42,95 @@ const Watch = () => {
   const [isMuted, setIsMuted] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const [playbackRate, setPlaybackRate] = useState(1);
+  const [series, setSeries] = useState<any>(null);
+  const [showNextEpisode, setShowNextEpisode] = useState(false);
+  const [showMovieFinished, setShowMovieFinished] = useState(false);
+
+  const episodes = [...(series?.episodes || [])].sort(
+    (a: any, b: any) => a.episodeNumber - b.episodeNumber,
+  );
+
+  const currentEpisodeIndex = episodes.findIndex(
+    (item: any) => item.id === movieId,
+  );
+
+  const nextEpisode =
+    currentEpisodeIndex >= 0 ? episodes[currentEpisodeIndex + 1] : null;
 
   const hideControlsTimer = useRef<NodeJS.Timeout | null>(null);
 
   // -----------------------------
   // PLAY / PAUSE
   // -----------------------------
+
+  const handleSeriesEnd = () => {
+    if (!series?.id) return;
+
+    const isDesktop = window.matchMedia("(min-width: 768px)").matches;
+
+    if (isDesktop) {
+      router.replace(`/?openSeriesModal=true&seriesId=${series.id}`);
+      return;
+    }
+    console.log("SERIES END:", series?.id);
+    router.replace(`/series/${series.id}`);
+  };
+
+  const handleVideoEnded = () => {
+    // -----------------------------
+    // MOVIE FINISHED
+    // -----------------------------
+    if (type !== "episode") {
+      setIsPlaying(false);
+      setShowMovieFinished(true);
+      return;
+    }
+
+    // -----------------------------
+    // EPISODE FINISHED
+    // -----------------------------
+    if (!series) {
+      return;
+    }
+
+    const episodes = [...(series.episodes || [])].sort(
+      (a: any, b: any) => a.episodeNumber - b.episodeNumber,
+    );
+
+    const currentIndex = episodes.findIndex(
+      (episode: any) => episode.id === movieId,
+    );
+
+    if (currentIndex === -1) {
+      return;
+    }
+
+    const nextEpisode = episodes[currentIndex + 1];
+
+    if (!nextEpisode) {
+      handleSeriesEnd();
+      return;
+    }
+
+    setShowNextEpisode(true);
+    setIsPlaying(false);
+  };
+
+  const handleNextEpisode = () => {
+    if (!series || !nextEpisode) return;
+
+    setShowNextEpisode(false);
+
+    router.replace(
+      `/watch/${nextEpisode.id}?type=episode&seriesId=${series.id}`,
+    );
+  };
+
+  useEffect(() => {
+    setShowNextEpisode(false);
+    setShowMovieFinished(false);
+    setIsPlaying(false);
+  }, [movieId]);
 
   const togglePlay = async () => {
     const video = videoRef.current;
@@ -353,6 +437,30 @@ const Watch = () => {
     };
   }, []);
 
+  useEffect(() => {
+    if (!router.isReady || type !== "episode" || !seriesId) {
+      return;
+    }
+
+    const fetchSeries = async () => {
+      try {
+        const response = await fetch(`/api/series/${seriesId}`);
+
+        if (!response.ok) {
+          throw new Error("Failed to load series");
+        }
+
+        const data = await response.json();
+
+        setSeries(data);
+      } catch (error) {
+        console.error("Failed to load series:", error);
+      }
+    };
+
+    fetchSeries();
+  }, [router.isReady, type, seriesId]);
+
   return (
     <div
       ref={containerRef}
@@ -369,10 +477,258 @@ const Watch = () => {
         src={data?.videoUrl}
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
+        onEnded={handleVideoEnded}
         onLoadedMetadata={handleLoadedMetadata}
         onClick={togglePlay}
       />
 
+      {showMovieFinished && (
+        <div
+          className="
+      absolute
+      bottom-20
+      right-4
+      z-30
+      w-[calc(100%-2rem)]
+      max-w-sm
+      sm:bottom-24
+      sm:right-6
+      md:bottom-28
+      md:right-8
+      md:w-[360px]
+    "
+        >
+          <div
+            className="
+        overflow-hidden
+        rounded-xl
+        bg-zinc-950/90
+        shadow-2xl
+        ring-1
+        ring-white/10
+        backdrop-blur-xl
+      "
+          >
+            <div className="flex items-center gap-3 p-2.5">
+              {/* Movie thumbnail */}
+              <div
+                className="
+            relative
+            h-16
+            w-28
+            shrink-0
+            overflow-hidden
+            rounded-lg
+            bg-zinc-800
+            sm:h-[72px]
+            sm:w-32
+          "
+              >
+                <img
+                  src={data?.thumbnailUrl}
+                  alt={data?.title || "Movie"}
+                  className="h-full w-full object-cover"
+                />
+
+                {/* Finished icon */}
+                <div className="absolute inset-0 flex items-center justify-center bg-black/25">
+                  <div
+                    className="
+                flex
+                h-8
+                w-8
+                items-center
+                justify-center
+                rounded-full
+                bg-white/95
+                text-black
+                shadow-lg
+              "
+                  >
+                    ✓
+                  </div>
+                </div>
+              </div>
+
+              {/* Movie information */}
+              <div className="min-w-0 flex-1 py-1">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-500">
+                  Finished
+                </p>
+
+                <h3 className="mt-1 truncate text-sm font-semibold text-white">
+                  {data?.title}
+                </h3>
+
+                <p className="mt-0.5 text-xs text-zinc-400">
+                  Thanks for watching
+                </p>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex gap-2 border-t border-white/10 p-2.5">
+              <button
+                onClick={() => {
+                  setShowMovieFinished(false);
+
+                  const video = videoRef.current;
+
+                  if (video) {
+                    video.currentTime = 0;
+                    video.play();
+                  }
+                }}
+                className="
+            flex-1
+            rounded-lg
+            bg-white
+            px-3
+            py-2
+            text-xs
+            font-semibold
+            text-black
+            transition
+            hover:bg-zinc-200
+            active:scale-[0.98]
+          "
+              >
+                Watch Again
+              </button>
+
+              <button
+                onClick={() => router.push("/")}
+                className="
+            flex-1
+            rounded-lg
+            bg-white/10
+            px-3
+            py-2
+            text-xs
+            font-semibold
+            text-white
+            transition
+            hover:bg-white/20
+            active:scale-[0.98]
+          "
+              >
+                Back to Home
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showNextEpisode && nextEpisode && (
+        <div
+          className="
+      absolute
+      bottom-20
+      right-4
+      z-30
+      w-[calc(100%-2rem)]
+      max-w-sm
+      sm:bottom-24
+      sm:right-6
+      md:bottom-28
+      md:right-8
+      md:w-[360px]
+    "
+        >
+          <button
+            onClick={handleNextEpisode}
+            className="
+        group
+        flex
+        w-full
+        items-center
+        gap-3
+        rounded-xl
+        bg-zinc-950/90
+        p-2.5
+        text-left
+        shadow-2xl
+        ring-1
+        ring-white/10
+        backdrop-blur-xl
+        transition-all
+        duration-300
+        hover:bg-zinc-900
+        hover:ring-white/20
+        active:scale-[0.98]
+      "
+          >
+            {/* Thumbnail */}
+            <div
+              className="
+          relative
+          h-16
+          w-28
+          shrink-0
+          overflow-hidden
+          rounded-lg
+          bg-zinc-800
+          sm:h-[72px]
+          sm:w-32
+        "
+            >
+              <img
+                src={nextEpisode.thumbnailUrl}
+                alt={nextEpisode.title}
+                className="
+            h-full
+            w-full
+            object-cover
+            transition-transform
+            duration-500
+            group-hover:scale-105
+          "
+              />
+
+              <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                <div
+                  className="
+              flex
+              h-8
+              w-8
+              items-center
+              justify-center
+              rounded-full
+              bg-white/95
+              text-black
+              shadow-lg
+              transition-transform
+              duration-300
+              group-hover:scale-110
+            "
+                >
+                  <PlayIcon className="ml-0.5 h-4 w-4 fill-black" />
+                </div>
+              </div>
+            </div>
+
+            {/* Episode info */}
+            <div className="min-w-0 flex-1 py-1">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-500">
+                Up Next
+              </p>
+
+              <h3 className="mt-1 truncate text-sm font-semibold text-white">
+                Episode {nextEpisode.episodeNumber}
+              </h3>
+
+              <p className="mt-0.5 truncate text-xs text-zinc-400">
+                {nextEpisode.title}
+              </p>
+            </div>
+
+            {/* Arrow */}
+            <div className="pr-1 text-zinc-500 transition-transform duration-300 group-hover:translate-x-1 group-hover:text-white">
+              →
+            </div>
+          </button>
+        </div>
+      )}
       {/* TOP GRADIENT */}
 
       <div

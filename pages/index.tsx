@@ -16,6 +16,8 @@ import useInfoModalStore from "@/hooks/useInfoModalStore";
 import useSeriesInfoModalStore from "@/hooks/useSeriesInfoModalStore";
 import InfoModal from "@/components/InfoModal";
 
+import { useRouter } from "next/router";
+import { useEffect } from "react";
 export async function getServerSideProps(context: NextPageContext) {
   const session = await getSession(context);
 
@@ -41,8 +43,32 @@ const Home = () => {
 
   const { isOpen, closeModal } = useInfoModalStore();
 
-  const { isOpen: isSeriesOpen, closeModal: closeSeriesModal } =
-    useSeriesInfoModalStore();
+  const router = useRouter();
+
+  const {
+    isOpen: isSeriesOpen,
+    openModal: openSeriesModal,
+    closeModal: closeSeriesModal,
+  } = useSeriesInfoModalStore();
+
+  useEffect(() => {
+    if (!router.isReady) return;
+
+    if (router.query.openSeriesModal !== "true") return;
+
+    const seriesId = router.query.seriesId as string;
+
+    if (!seriesId) return;
+
+    openSeriesModal(seriesId);
+
+    router.replace("/", undefined, { shallow: true });
+  }, [
+    router.isReady,
+    router.query.openSeriesModal,
+    router.query.seriesId,
+    openSeriesModal,
+  ]);
 
   return (
     <>
