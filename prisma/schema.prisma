@@ -20,12 +20,17 @@ model User {
   hashedPassword String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
   sessions Session[]
   accounts Account[]
+
   favoriteIds String[] @db.ObjectId
   favoriteSeriesIds String[] @db.ObjectId
-  movies         Movie[]
+
+  movies Movie[]
   series Series[]
+
+  imageSeries ImageSeries[]
 }
 
 model Account {
@@ -120,4 +125,36 @@ model Episode {
 
   seriesId String @db.ObjectId
   series Series @relation(fields: [seriesId], references: [id], onDelete: Cascade)
+}
+
+model ImageSeries {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  title String
+  description String
+
+  thumbnailUrl String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId String @db.ObjectId
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  images Image[]
+}
+
+model Image {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  title String?
+  imageUrl String
+
+  imageNumber Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  imageSeriesId String @db.ObjectId
+  imageSeries ImageSeries @relation(fields: [imageSeriesId], references: [id], onDelete: Cascade)
 }

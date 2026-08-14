@@ -12,7 +12,7 @@ export default async function handler(
       });
     }
 
-    const { type, fileName, contentType } = req.body;
+    const { type, fileName, contentType, seriesId } = req.body;
 
     if (!type || !fileName || !contentType) {
       return res.status(400).json({
@@ -33,6 +33,20 @@ export default async function handler(
 
       case "banner":
         folder = "banners";
+        break;
+
+      case "image-series-cover":
+        folder = "image-series/covers";
+        break;
+
+      case "image":
+        if (!seriesId) {
+          return res.status(400).json({
+            error: "seriesId is required for image uploads",
+          });
+        }
+
+        folder = `image-series/${seriesId}`;
         break;
 
       default:

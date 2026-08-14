@@ -18,6 +18,11 @@ import InfoModal from "@/components/InfoModal";
 
 import { useRouter } from "next/router";
 import { useEffect } from "react";
+import useImageSeriesList from "@/hooks/useImageSeriesList";
+import ImageSeriesList from "@/components/image-series/ImageSeriesList";
+import ImageSeriesInfoModal from "@/components/image-series/ImageSeriesInfoModal";
+import useImageSeriesInfoModalStore from "@/hooks/useImageSeriesInfoModalStore";
+
 export async function getServerSideProps(context: NextPageContext) {
   const session = await getSession(context);
 
@@ -43,6 +48,8 @@ const Home = () => {
 
   const { isOpen, closeModal } = useInfoModalStore();
 
+  const { data: imageSeries = [] } = useImageSeriesList();
+
   const router = useRouter();
 
   const {
@@ -50,6 +57,9 @@ const Home = () => {
     openModal: openSeriesModal,
     closeModal: closeSeriesModal,
   } = useSeriesInfoModalStore();
+
+  const { isOpen: isImageSeriesOpen, closeModal: closeImageSeriesModal } =
+    useImageSeriesInfoModalStore();
 
   useEffect(() => {
     if (!router.isReady) return;
@@ -82,6 +92,8 @@ const Home = () => {
         <section className="relative z-30 -mt-4 sm:-mt-6 md:-mt-8">
           <MovieList title="Trending Now" data={movies} />
 
+          <ImageSeriesList title="Image Series" data={imageSeries} />
+
           <MovieList title="My List" data={favorites} />
 
           <MovieList title="Recently Added" data={recentMovies} />
@@ -93,6 +105,10 @@ const Home = () => {
       <InfoModal visible={isOpen} onClose={closeModal} />
 
       <SeriesInfoModal visible={isSeriesOpen} onClose={closeSeriesModal} />
+      <ImageSeriesInfoModal
+        visible={isImageSeriesOpen}
+        onClose={closeImageSeriesModal}
+      />
     </>
   );
 };

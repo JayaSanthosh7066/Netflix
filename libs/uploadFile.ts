@@ -1,8 +1,8 @@
 export const uploadFile = async (
   file: File,
-  type: "video" | "thumbnail" | "banner",
+  type: "video" | "thumbnail" | "banner" | "image-series-cover" | "image",
+  seriesId?: string,
 ) => {
-  // Step 1: Get pre-signed URL
   const response = await fetch("/api/upload-url", {
     method: "POST",
     headers: {
@@ -12,6 +12,7 @@ export const uploadFile = async (
       fileName: file.name,
       contentType: file.type,
       type,
+      seriesId,
     }),
   });
 

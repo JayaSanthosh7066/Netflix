@@ -1,5 +1,10 @@
 import Link from "next/link";
-import { ArrowLeftIcon, FilmIcon, TvIcon } from "@heroicons/react/24/outline";
+import {
+  ArrowLeftIcon,
+  FilmIcon,
+  PhotoIcon,
+  TvIcon,
+} from "@heroicons/react/24/outline";
 
 export default function AdminDashboard() {
   return (
@@ -135,6 +140,56 @@ export default function AdminDashboard() {
 
               <div className="mt-8 flex items-center font-semibold text-blue-500 sm:mt-10">
                 Open Series
+                <span className="ml-2 transition-transform duration-300 group-hover:translate-x-2">
+                  →
+                </span>
+              </div>
+            </div>
+          </Link>
+
+          {/* Image Series */}
+          <Link href="/admin/image-series" className="block">
+            <div
+              className="
+      group
+      h-full
+      cursor-pointer
+      rounded-2xl
+      border
+      border-zinc-700
+      bg-zinc-800
+      p-6
+      transition-all
+      duration-300
+      hover:scale-[1.02]
+      hover:border-emerald-500
+      hover:bg-zinc-700
+      hover:shadow-2xl
+      sm:p-8
+    "
+            >
+              <PhotoIcon
+                className="
+        mb-5
+        h-12
+        w-12
+        text-emerald-500
+        transition-transform
+        duration-300
+        group-hover:scale-110
+        sm:h-16
+        sm:w-16
+      "
+              />
+
+              <h2 className="text-2xl font-bold sm:text-3xl">Image Series</h2>
+
+              <p className="mt-3 max-w-md text-sm leading-6 text-zinc-400 sm:text-base">
+                Create image collections and manage their photos.
+              </p>
+
+              <div className="mt-8 flex items-center font-semibold text-emerald-500 sm:mt-10">
+                Open Image Series
                 <span className="ml-2 transition-transform duration-300 group-hover:translate-x-2">
                   →
                 </span>

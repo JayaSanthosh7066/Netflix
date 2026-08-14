@@ -31,3 +31,24 @@ export interface SeriesInterface {
 
   episodes?: EpisodeInterface[];
 }
+
+export interface ImageInterface {
+  id: string;
+  title: string | null;
+  imageUrl: string;
+  imageNumber: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ImageSeriesInterface {
+  id: string;
+  title: string;
+  description: string;
+  thumbnailUrl?: string;
+
+  createdAt: string;
+  updatedAt: string;
+
+  images?: ImageInterface[];
+}

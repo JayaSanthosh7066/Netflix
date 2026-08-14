@@ -34,3 +34,31 @@ html {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+@keyframes imageOpen {
+  0% {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes imageClose {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+
+.animate-image-open {
+  animation: imageOpen 700ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
