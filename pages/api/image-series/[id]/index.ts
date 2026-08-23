@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import prismadb from "@/libs/prismadb";
+import serverAuth from "@/libs/serverAuth";
 
 export default async function handler(
   req: NextApiRequest,
@@ -12,6 +13,8 @@ export default async function handler(
       });
     }
 
+    const { currentUser } = await serverAuth(req, res);
+
     const { id } = req.query;
 
     if (typeof id !== "string") {
@@ -20,9 +23,10 @@ export default async function handler(
       });
     }
 
-    const imageSeries = await prismadb.imageSeries.findUnique({
+    const imageSeries = await prismadb.imageSeries.findFirst({
       where: {
         id,
+        userId: currentUser.id,
       },
       include: {
         images: {

@@ -15,6 +15,9 @@ export default async function handler(
 
     if (req.method === "GET") {
       const imageSeries = await prismadb.imageSeries.findMany({
+        where: {
+          userId: currentUser.id,
+        },
         orderBy: {
           createdAt: "desc",
         },
@@ -56,6 +59,7 @@ export default async function handler(
           // First uploaded image will become the cover.
           thumbnailUrl: null,
 
+          // Image Series belongs to the logged-in user.
           userId: currentUser.id,
         },
       });
